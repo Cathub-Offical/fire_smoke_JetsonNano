@@ -1,0 +1,10 @@
+# Jetson Nano 上额外需要安装的 Python 依赖。
+# 注意：PyTorch / torchvision / OpenCV 在 JetPack 中通常已经预装好，
+# 不要用 pip 直接安装 cpu/x86 版本，否则会冲突。
+# 缺少时请参考 NVIDIA 官方 wheel：
+#   https://forums.developer.nvidia.com/t/pytorch-for-jetson/72048
+
+paho-mqtt>=1.6.1,<2
+PyYAML>=5.4
+numpy>=1.19
+# tqdm/pandas/seaborn 等仅训练用到，推理可不装

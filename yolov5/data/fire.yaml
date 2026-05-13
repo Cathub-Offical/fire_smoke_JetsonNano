@@ -1,0 +1,8 @@
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: E:/yolov5_fire_smoke_detection/datasets/VOC2020  # dataset root dir
+train: images/train  # train images
+val: images/val # val images
+
+# Classes
+nc: 2  # number of classes
+names: ['fire','smoke']  # class names

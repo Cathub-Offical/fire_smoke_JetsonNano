@@ -1,0 +1,69 @@
+# Jetson Nano 火灾烟雾检测 + MQTT 报警  配置文件
+
+mqtt:
+  broker_host: lbb312b2.ala.cn-hangzhou.emqxsl.cn
+  broker_port: 8883
+  use_tls: true
+  username: 'cathub'
+  password: 'liuyili20040912'
+  device_id: cathub-fire-9K3xQ                           #默认id
+  topic_template: "flame_smoke/alarm/{device_id}"        #默认 alarm topic
+  video_topic_template: "flame_smoke/video/{device_id}"  #默认 video topic
+  meta_topic_template: "flame_smoke/meta/{device_id}"    #设备元数据（retained）
+  status_topic_template: "flame_smoke/status/{device_id}" #在线/心跳（retained, LWT）
+  cmd_topic_template: "flame_smoke/cmd/{device_id}"      #App→Jetson 远控指令
+  ack_topic_template: "flame_smoke/ack/{device_id}"      #Jetson→App 指令回执
+  qos: 1
+
+device:
+  name: "房间 #1"                                   # 默认名称
+  location:
+    address: "1号房间"                              # 默认描述
+    lat: 39.9042                                         # 纬度（可选，留 0 表示未设）
+    lng: 116.4074                                        # 经度（可选）
+  status_heartbeat_seconds: 30                           # 心跳间隔
+
+inference:
+  # 权重默认.pt（pytorch）
+  #.engine（TensorRT，速度更快）
+  weights: model/best.pt
+  data: yolov5/data/fire.yaml   # 数据集 yaml（用于读取类别名）
+  imgsz: 640
+  conf_thres: 0.45
+  iou_thres: 0.45
+  device: "0"          # "cpu" 或 GPU 索引 "0"
+  half: true           # Tensor引擎默认true
+
+# 视频源
+# 0/1/...     -> /dev/videoN USB 摄像头
+# "csi"       -> Jetson CSI 摄像头（IMX219），自动用 GStreamer
+# 路径或 RTSP -> 直接交给 OpenCV
+source:
+  uri: csi
+  csi_width: 1280
+  csi_height: 720
+  csi_fps: 30
+  csi_flip_method: 0   # 0/2 旋转角度，CSI 倒装时设 2
+
+# 火警触发与防误报
+alarm:
+  trigger_classes: ["fire", "smoke"]   # 哪些类别触发上报（小写匹配）
+  min_confidence: 0.55                  # 单帧最低置信度
+  consecutive_frames: 5                 # 连续 N 帧命中才报警
+  cooldown_seconds: 30                  # 同类报警冷却，避免风暴
+  send_image: true                      # 是否携带现场截图
+  image_max_width: 640                  # 上传截图缩放最大宽度
+  image_jpeg_quality: 75
+  location: "默认位置"                  # 该设备的物理位置描述
+
+display:
+  show_window: true      # Jetson 上无显示器时设 false
+  print_fps_every: 30
+
+video_stream:
+  enabled: true          # 关掉就不推视频帧，只推报警
+  fps: 4                 # 推流帧率（推理仍按摄像头原帧率跑）
+  max_width: 480         # 推送前等比缩放最大宽度
+  jpeg_quality: 60       # JPEG 压缩质量 1-100
+  draw_overlay: true     # 是否在推送的画面上画检测框
+  qos: 0                 # 视频帧用 QoS 0，丢帧不排队
